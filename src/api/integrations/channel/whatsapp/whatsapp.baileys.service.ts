@@ -5382,7 +5382,8 @@ export class BaileysStartupService extends ChannelStartupService {
       this.logger.error(`Error decrypting poll votes: ${error}`);
       throw new InternalServerErrorException('Error decrypting poll votes', error.toString());
     }
-  
+  }
+
   public async fetchChannels(query: Query<Contact>) {
     const page = Number((query as any)?.page ?? 1);
     const limit = Number((query as any)?.limit ?? (query as any)?.rows ?? 50);
