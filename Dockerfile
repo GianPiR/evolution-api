@@ -26,11 +26,7 @@ RUN chmod +x ./Docker/scripts/* && dos2unix ./Docker/scripts/*
 
 RUN ./Docker/scripts/generate_database.sh
 
-RUN NODE_OPTIONS="--max-old-space-size=6096" npm run build
-
 FROM node:24-alpine AS final
-
-ENV NODE_OPTIONS="--max-old-space-size=6096"
 
 RUN apk update && \
     apk add tzdata ffmpeg bash openssl
