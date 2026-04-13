@@ -1140,7 +1140,62 @@ export class BusinessStartupService extends ChannelStartupService {
             },
           };
           quoted ? (content.context = { message_id: quoted.id }) : content;
-          message = { conversation: `▶️${message['template']['name']}◀️` };
+
+          const components = message['template']['components'] || [];
+
+          const templateMeta: any = {};
+
+          try {
+            const headerComp = components.find((c: any) => (c.type || '').toString().toUpperCase() === 'HEADER');
+
+            const locParam = headerComp?.parameters?.find(
+              (parameter: any) => (parameter.type || '').toString().toLowerCase() === 'location' && parameter.location,
+            );
+
+            if (locParam?.location) {
+              const loc = locParam.location;
+
+              templateMeta.locationMessage = {
+                degreesLatitude: loc.latitude,
+                degreesLongitude: loc.longitude,
+                name: loc.name,
+                address: loc.address,
+                url: loc.url,
+              };
+            }
+
+            const bodyComp = components.find(
+              (component: any) => (component.type || '').toString().toUpperCase() === 'BODY',
+            );
+
+            const footerComp = components.find(
+              (component: any) => (component.type || '').toString().toUpperCase() === 'FOOTER',
+            );
+
+            const variables: any[] = [];
+
+            if (headerComp?.parameters) {
+              variables.push(
+                ...headerComp.parameters.filter(
+                  (parameter: any) => (parameter.type || '').toString().toLowerCase() === 'text',
+                ),
+              );
+            }
+
+            if (bodyComp?.parameters) variables.push(...bodyComp.parameters);
+
+            if (variables.length) templateMeta.variables = variables;
+
+            if (footerComp?.text) templateMeta.footer = footerComp.text;
+          } catch {
+            // Ignores extra data
+          }
+
+          message = {
+            conversation: `▶️${message['template']['name']}◀️`,
+            ...(Object.keys(templateMeta).length ? { templateMeta } : {}),
+          } as any;
+
           return await this.post(content, 'messages');
         }
       })();
