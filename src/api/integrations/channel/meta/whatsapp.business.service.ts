@@ -224,6 +224,29 @@ export class BusinessStartupService extends ChannelStartupService {
     return content;
   }
 
+  private messageTemplateJson(received: any) {
+    const message = received.messages[0];
+    const tpl = message.template;
+    const name = tpl?.name ?? '';
+    const language = tpl?.language;
+    const components = Array.isArray(tpl?.components) ? tpl.components : [];
+
+    let content: any = {
+      templateMessage: {
+        name,
+        ...(language !== undefined ? { language } : {}),
+        components,
+      },
+      ...(name ? { conversation: `▶️${name}◀️` } : {}),
+    };
+
+    if (message.context) {
+      content = { ...content, contextInfo: { stanzaId: message.context.id } };
+    }
+
+    return content;
+  }
+
   private messageTextJson(received: any) {
     // Verificar que received y received.messages existen
     if (!received || !received.messages || received.messages.length === 0) {
@@ -657,6 +680,18 @@ export class BusinessStartupService extends ChannelStartupService {
             source: 'unknown',
             instanceId: this.instanceId,
           };
+        } else if (received?.messages[0].type === 'template') {
+          const templateContent = this.messageTemplateJson(received);
+          messageRaw = {
+            key,
+            pushName,
+            message: templateContent,
+            contextInfo: templateContent?.contextInfo,
+            messageType: 'templateMessage',
+            messageTimestamp: parseInt(received.messages[0].timestamp) as number,
+            source: 'unknown',
+            instanceId: this.instanceId,
+          };
         } else {
           messageRaw = {
             key,
@@ -937,7 +972,8 @@ export class BusinessStartupService extends ChannelStartupService {
           message.type === 'contacts' ||
           message.type === 'interactive' ||
           message.type === 'button' ||
-          message.type === 'reaction'
+          message.type === 'reaction' ||
+          message.type === 'template'
         ) {
           // Procesar el mensaje normalmente
           this.messageHandle({ ...content, messages }, database, settings);
