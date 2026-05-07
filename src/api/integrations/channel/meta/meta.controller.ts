@@ -15,29 +15,6 @@ export class MetaController extends ChannelController implements ChannelControll
   integrationEnabled: boolean;
 
   public async receiveWebhook(data: any) {
-    console.log('MetaController -> receiveWebhook -> raw payload', JSON.stringify(data));
-
-    // Log specific payload body when message type is location
-    try {
-      const entries = data?.entry ?? [];
-
-      for (const entry of entries) {
-        const changes = entry?.changes ?? [];
-
-        for (const change of changes) {
-          const messages = change?.value?.messages ?? [];
-
-          for (const message of messages) {
-            if (message?.type === 'location' && message?.location) {
-              console.log('MetaController -> receiveWebhook -> location body', JSON.stringify(message));
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('MetaController -> receiveWebhook -> error parsing location payload', error);
-    }
-
     if (data.object === 'whatsapp_business_account') {
       if (data.entry[0]?.changes[0]?.field === 'message_template_status_update') {
         const template = await this.prismaRepository.template.findFirst({

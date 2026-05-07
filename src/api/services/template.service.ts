@@ -57,11 +57,8 @@ export class TemplateService {
         components: data.components,
         parameter_format: data.parameterFormat,
       };
-      console.log('postData', JSON.stringify(postData, null, 2));
 
       const response = await this.requestTemplate(postData, 'POST');
-
-      console.log('response', JSON.stringify(response, null, 2));
 
       if (!response || response.error) {
         // If there's an error from WhatsApp API, throw it with the real error data
